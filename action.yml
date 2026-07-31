@@ -48,9 +48,18 @@ inputs:
   truecopy-ref:
     description: >-
       Git ref of askalf/truecopy to install — tag, branch, or commit SHA. This is
-      a supply-chain gate: pin a tag or SHA, do not float a branch.
+      a supply-chain gate: pin a tag or SHA, do not float a branch. A release tag
+      of v0.9.0 or later installs from the signed release tarball; anything else
+      falls back to a git install, which npm v12 blocks by default.
     required: false
     default: 'v0.10.0'
+  verify-attestation:
+    description: >-
+      Verify the release tarball's Sigstore attestation (`gh attestation verify
+      --owner askalf`) before installing. Only applies to the tarball path — a
+      git-installed ref has nothing to attest. Needs the gh CLI and a token.
+    required: false
+    default: 'false'
 
 outputs:
   report:
@@ -64,7 +73,11 @@ runs:
       shell: bash
       env:
         TRUECOPY_REF: ${{ inputs.truecopy-ref }}
+        TRUECOPY_ATTEST: ${{ inputs.verify-attestation }}
+        GH_TOKEN: ${{ github.token }}
       run: |
+        set -uo pipefail
+
         if ! command -v node >/dev/null 2>&1; then
           echo "::error::node not found on this runner — add an actions/setup-node step (node-version >= 20) before this action"
           exit 1
@@ -74,7 +87,63 @@ runs:
           echo "::error::truecopy needs node >= 20, runner has $(node --version) — add an actions/setup-node step with node-version: 20"
           exit 1
         fi
-        npm install -g --no-fund --no-audit "github:askalf/truecopy#${TRUECOPY_REF}"
+
+        npm_major="$(npm -v | cut -d. -f1)"
+
+        # Prefer the signed release tarball. npm v12 blocks git dependencies by
+        # default, and a supply-chain gate should not install itself over the
+        # route npm hardened against. Only release-shaped refs have a tarball —
+        # a branch or a bare SHA does not, and neither do releases before
+        # v0.9.0, which shipped no assets.
+        ver=''
+        case "$TRUECOPY_REF" in
+          v[0-9]*.[0-9]*.[0-9]*) ver="${TRUECOPY_REF#v}" ;;
+          [0-9]*.[0-9]*.[0-9]*)  ver="$TRUECOPY_REF" ;;
+        esac
+
+        installed=0
+        if [ -n "$ver" ]; then
+          tgz="askalf-truecopy-${ver}.tgz"
+          url="https://github.com/askalf/truecopy/releases/download/v${ver}/${tgz}"
+          tmp="$(mktemp -d)"
+          if curl -fsSL --retry 3 --retry-delay 2 -o "${tmp}/${tgz}" "$url" 2>/dev/null; then
+            if [ "$TRUECOPY_ATTEST" = 'true' ]; then
+              if ! command -v gh >/dev/null 2>&1; then
+                echo "::error::verify-attestation: the gh CLI is not on this runner"
+                exit 1
+              fi
+              echo "Verifying Sigstore attestation for ${tgz}…"
+              if ! gh attestation verify "${tmp}/${tgz}" --owner askalf; then
+                echo "::error::attestation verification FAILED for ${tgz} — refusing to install"
+                exit 1
+              fi
+            fi
+            if npm install -g --no-fund --no-audit "${tmp}/${tgz}"; then
+              installed=1
+              echo "truecopy ${ver} installed from the signed release tarball"
+            else
+              echo "::error::failed to install ${tgz}"
+              exit 1
+            fi
+          else
+            echo "::notice::no release tarball for v${ver} (assets start at v0.9.0) — falling back to a git install"
+          fi
+        fi
+
+        if [ "$installed" -eq 0 ]; then
+          if [ "$npm_major" -ge 12 ]; then
+            echo "::warning::npm ${npm_major} blocks git dependencies by default; retrying with --allow-git. Pin truecopy-ref to a release tag >= v0.9.0 to install from the signed tarball instead."
+            if ! npm install -g --allow-git --no-fund --no-audit "github:askalf/truecopy#${TRUECOPY_REF}"; then
+              echo "::error::git install of '${TRUECOPY_REF}' failed under npm ${npm_major}, which blocks git dependencies. Set truecopy-ref to a release tag >= v0.9.0 (e.g. v0.10.0) so the action installs from the signed release tarball."
+              exit 1
+            fi
+          else
+            if ! npm install -g --no-fund --no-audit "github:askalf/truecopy#${TRUECOPY_REF}"; then
+              echo "::error::git install of '${TRUECOPY_REF}' failed"
+              exit 1
+            fi
+          fi
+        fi
 
     - name: Run truecopy
       id: run
