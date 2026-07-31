@@ -64,7 +64,7 @@ truecopy stays offline by design: your workflow fetches the clone, truecopy scan
 | `lock` | *(auto)* | lockfile path; empty auto-resolves `truecopy.lock`, then `canon.lock` (pre-rename) |
 | `trust` | — | a `truecopy.trust` file for publisher-signature verification |
 | `working-directory` | `.` | where to run truecopy |
-| `truecopy-ref` | `v0.8.0` | git ref of `askalf/truecopy` to install — **pin a tag or SHA, don't float a branch** |
+| `truecopy-ref` | `v0.10.0` | git ref of `askalf/truecopy` to install — **pin a tag or SHA, don't float a branch** |
 
 ## Outputs
 

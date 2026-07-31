@@ -50,7 +50,7 @@ inputs:
       Git ref of askalf/truecopy to install — tag, branch, or commit SHA. This is
       a supply-chain gate: pin a tag or SHA, do not float a branch.
     required: false
-    default: 'v0.8.0'
+    default: 'v0.10.0'
 
 outputs:
   report:
