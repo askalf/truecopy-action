@@ -64,7 +64,8 @@ truecopy stays offline by design: your workflow fetches the clone, truecopy scan
 | `lock` | *(auto)* | lockfile path; empty auto-resolves `truecopy.lock`, then `canon.lock` (pre-rename) |
 | `trust` | — | a `truecopy.trust` file for publisher-signature verification |
 | `working-directory` | `.` | where to run truecopy |
-| `truecopy-ref` | `v0.10.0` | git ref of `askalf/truecopy` to install — **pin a tag or SHA, don't float a branch** |
+| `truecopy-ref` | `v0.10.0` | ref of `askalf/truecopy` to install — **pin a tag or SHA, don't float a branch**. A release tag ≥ `v0.9.0` installs from the signed release tarball; anything else falls back to a git install |
+| `verify-attestation` | `false` | verify the tarball's Sigstore attestation (`gh attestation verify --owner askalf`) before installing |
 
 ## Outputs
 
@@ -79,8 +80,11 @@ This is a supply-chain gate, so it practices what it gates:
 - **Zero third-party action dependencies.** Composite action, plain `bash` steps — it installs exactly one thing: truecopy, at the ref you pin via `truecopy-ref`.
 - **Pin this action too.** `askalf/truecopy-action@v1` is convenient; `askalf/truecopy-action@<full-sha>` is airtight. Same advice we'd give about anyone's action. (The old `askalf/canon-action` name still resolves via GitHub's rename redirect.)
 - **No secrets required.** `verify` needs only the public key material already committed in `truecopy.trust`. (Signing belongs in your own workflow with `CANON_SIGNING_KEY` — see [truecopy's CI docs](https://github.com/askalf/truecopy#in-ci).)
+- **Installs from a signed tarball, not a git dependency.** When `truecopy-ref` is a release tag ≥ `v0.9.0` the action fetches that release's `askalf-truecopy-<version>.tgz` — the same bytes signed with keyless Sigstore in truecopy's CI. Set `verify-attestation: true` to check the attestation before installing. Older tags, branches and bare SHAs have no tarball and still install over git.
 
 Requires node ≥ 20 on the runner (every current GitHub-hosted image qualifies; on self-hosted, add `actions/setup-node` first).
+
+> **npm v12 note.** npm v12 [blocks git dependencies by default](https://github.blog/changelog/2026-06-09-upcoming-breaking-changes-for-npm-v12/). The tarball path above avoids that for release refs. Two caveats: a branch/SHA ref still needs the git route (the action passes `--allow-git` on npm ≥ 12), and truecopy itself currently declares a git dependency on redstamp, so a fully git-free install also depends on that being resolved upstream — [truecopy-action#14](https://github.com/askalf/truecopy-action/issues/14).
 
 ## The agent-security stack
 
