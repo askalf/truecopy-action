@@ -51,8 +51,14 @@ inputs:
       a supply-chain gate: pin a tag or SHA, do not float a branch. A release tag
       of v0.9.0 or later installs from the signed release tarball; anything else
       falls back to a git install, which npm v12 blocks by default.
+
+      Default is v0.10.1, not v0.10.0, and the difference is load-bearing:
+      truecopy 0.10.0 still declares `@askalf/redstamp` as a GIT dependency, so
+      installing it from a tarball only moves the git dep one level down and npm
+      v12 still refuses. 0.10.1 pins redstamp to its signed release tarball
+      (askalf/truecopy#135), which is what actually closes the chain.
     required: false
-    default: 'v0.10.0'
+    default: 'v0.10.1'
   verify-attestation:
     description: >-
       Verify the release tarball's Sigstore attestation (`gh attestation verify
