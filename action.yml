@@ -52,13 +52,19 @@ inputs:
       of v0.9.0 or later installs from the signed release tarball; anything else
       falls back to a git install, which npm v12 blocks by default.
 
-      Default is v0.10.1, not v0.10.0, and the difference is load-bearing:
+      Default is v0.10.3, not v0.10.0, and the difference is load-bearing:
       truecopy 0.10.0 still declares `@askalf/redstamp` as a GIT dependency, so
       installing it from a tarball only moves the git dep one level down and npm
       v12 still refuses. 0.10.1 pins redstamp to its signed release tarball
-      (askalf/truecopy#135), which is what actually closes the chain.
+      (askalf/truecopy#135), which is what actually closes the chain. 0.10.3
+      carries redstamp forward again, 0.7.3 -> 0.7.5: a proven bypass of
+      redstamp's deterministic black gate via PowerShell's `-ArgumentList`
+      array form (`'-ExecutionPolicy','Bypass',...`), which scored green while
+      the equivalent space-separated command correctly scored black
+      (askalf/redstamp#124). A `verify`/`scan` run through this action on an
+      older ref can miss a skill or MCP server using that evasion shape.
     required: false
-    default: 'v0.10.1'
+    default: 'v0.10.3'
   verify-attestation:
     description: >-
       Verify the release tarball's Sigstore attestation (`gh attestation verify
