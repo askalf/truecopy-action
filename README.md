@@ -64,7 +64,7 @@ truecopy stays offline by design: your workflow fetches the clone, truecopy scan
 | `lock` | *(auto)* | lockfile path; empty auto-resolves `truecopy.lock`, then `canon.lock` (pre-rename) |
 | `trust` | — | a `truecopy.trust` file for publisher-signature verification |
 | `working-directory` | `.` | where to run truecopy |
-| `truecopy-ref` | `v0.10.1` | ref of `askalf/truecopy` to install — **pin a tag or SHA, don't float a branch**. A release tag ≥ `v0.9.0` installs from the signed release tarball; anything else falls back to a git install. `v0.10.1` is the first release that is git-dep-free *transitively* — 0.10.0 still git-deps redstamp |
+| `truecopy-ref` | `v0.10.3` | ref of `askalf/truecopy` to install — **pin a tag or SHA, don't float a branch**. A release tag ≥ `v0.9.0` installs from the signed release tarball; anything else falls back to a git install. `v0.10.1` was the first release that is git-dep-free *transitively* — 0.10.0 still git-deps redstamp. `v0.10.3` carries redstamp forward to 0.7.5, closing a proven PowerShell array-form bypass of its black gate (redstamp#124) |
 | `verify-attestation` | `false` | verify the tarball's Sigstore attestation (`gh attestation verify --owner askalf`) before installing |
 
 ## Outputs
