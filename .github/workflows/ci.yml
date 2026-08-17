@@ -62,6 +62,62 @@ jobs:
             *) echo "expected 'drifted' in the report" >&2; exit 1 ;;
           esac
 
+  require-signed-blocks-unsigned:
+    name: verify --require-signed — unsigned pin fails the build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Pin the fixture WITHOUT signing
+        run: npx -y github:askalf/truecopy#v0.10.3 add fixtures/clean-mcp.json --lock "$RUNNER_TEMP/truecopy.lock"
+      - name: Verify with require-signed (expected to fail)
+        id: verify
+        continue-on-error: true
+        uses: ./
+        with:
+          command: verify
+          lock: ${{ runner.temp }}/truecopy.lock
+          require-signed: 'true'
+      - name: Assert the unsigned pin was blocked
+        env:
+          OUTCOME: ${{ steps.verify.outcome }}
+          REPORT: ${{ steps.verify.outputs.report }}
+        run: |
+          if [ "$OUTCOME" != "failure" ]; then
+            echo "expected the action to fail on an unsigned pin, got: $OUTCOME" >&2
+            exit 1
+          fi
+          case "$REPORT" in
+            *unsigned*|*require*) echo "unsigned pin correctly blocked" ;;
+            *) echo "expected the report to say why" >&2; exit 1 ;;
+          esac
+
+  require-signed-passes-signed:
+    name: verify --require-signed — signed + trusted pin passes
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Sign a pin with a throwaway CI key and trust it
+        run: |
+          # CANON_SIGNING_KEY (private, generated for THIS run only) signs the
+          # pin; the trust file carries the derived public half. Mirrors the
+          # documented flow: signing in CI via env, verify from repo trust.
+          KEY=$(node -e "console.log(require('crypto').generateKeyPairSync('ed25519',{privateKeyEncoding:{type:'pkcs8',format:'pem'}}).privateKey.toString('base64url'))")
+          PRIV=$(node -e "console.log(Buffer.from(process.argv[1],'base64url').toString('base64'))" "$KEY")
+          export CANON_SIGNING_KEY="$PRIV"
+          node -e "const c=require('crypto');const pem=Buffer.from(process.env.CANON_SIGNING_KEY,'base64').toString();const pub=c.createPublicKey(pem).export({type:'spki',format:'pem'});require('fs').writeFileSync(process.env.RUNNER_TEMP+'/pub.pem',pub)"
+          npx -y github:askalf/truecopy#v0.10.3 add fixtures/clean-mcp.json --sign --lock "$RUNNER_TEMP/truecopy.lock"
+          # `trust add` has no --trust flag: --repo writes ./truecopy.trust in
+          # the CWD, so run it from RUNNER_TEMP to land the file where the
+          # verify step's `trust:` input points.
+          (cd "$RUNNER_TEMP" && npx -y github:askalf/truecopy#v0.10.3 trust add "$RUNNER_TEMP/pub.pem" --name ci-throwaway --repo)
+      - name: Verify with require-signed
+        uses: ./
+        with:
+          command: verify
+          lock: ${{ runner.temp }}/truecopy.lock
+          trust: ${{ runner.temp }}/truecopy.trust
+          require-signed: 'true'
+
   scan-clean-passes:
     name: scan — clean manifest passes
     runs-on: ubuntu-latest

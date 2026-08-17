@@ -35,6 +35,16 @@ inputs:
       verifying with zero changes. Set this only to point at a non-default path.
     required: false
     default: ''
+  require-signed:
+    description: >-
+      For 'verify': also fail any pinned entry that lacks a valid signature
+      from a trusted key (truecopy's --require-signed). Hash-pinning alone
+      proves the bytes didn't move; this additionally proves WHO pinned them —
+      and makes a lock substitution that strips sig+signed fail instead of
+      quietly downgrading to "ok, unsigned". Off by default: turning it on is
+      a policy ratchet for repos whose whole pinned set is already signed.
+    required: false
+    default: 'false'
   trust:
     description: >-
       Path to a truecopy.trust file for publisher-signature verification
@@ -167,6 +177,7 @@ runs:
         TRUECOPY_MARKETPLACE: ${{ inputs.marketplace }}
         TRUECOPY_LOCK: ${{ inputs.lock }}
         TRUECOPY_TRUST: ${{ inputs.trust }}
+        TRUECOPY_REQUIRE_SIGNED: ${{ inputs.require-signed }}
       run: |
         args=()
         case "$TRUECOPY_CMD" in
@@ -174,6 +185,7 @@ runs:
             args=(verify)
             if [ -n "$TRUECOPY_LOCK" ]; then args+=(--lock "$TRUECOPY_LOCK"); fi
             if [ -n "$TRUECOPY_TRUST" ]; then args+=(--trust "$TRUECOPY_TRUST"); fi
+            if [ "$TRUECOPY_REQUIRE_SIGNED" = "true" ]; then args+=(--require-signed); fi
             ;;
           scan)
             if [ -z "$TRUECOPY_PATHS" ] && [ -z "$TRUECOPY_MARKETPLACE" ]; then
