@@ -1,0 +1,38 @@
+# Path → label map for .github/workflows/pr-triage.yml (actions/labeler v7).
+#
+# Additive only: sync-labels is off, so nothing here ever strips a label a
+# human — or Dependabot — put on a PR by hand. Add a path, get a label.
+#
+# Bare-noun labels, matching the Own Your Stack family vocabulary (redstamp is
+# the reference), so a reader moving between repos sees the same words.
+
+# A composite action: action.yml IS the product, so a change there is the
+# highest-signal thing this map can say.
+
+action:
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'action.yml'
+
+fixtures:
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'fixtures/**'
+
+github_actions:
+  - changed-files:
+      - any-glob-to-any-file:
+          - '.github/workflows/**'
+          - '.github/labeler.yml'
+
+documentation:
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'README.md'
+          - 'CHANGELOG.md'
+          - 'CONTRIBUTING.md'
+          - 'CODE_OF_CONDUCT.md'
+          - 'SECURITY.md'
+          - '.github/ISSUE_TEMPLATE/**'
+          - '.github/pull_request_template.md'
+
