@@ -88,7 +88,7 @@ Requires node ≥ 20 on the runner (every current GitHub-hosted image qualifies;
 
 ## The agent-security stack
 
-Three composable layers, one defense: **[redstamp](https://github.com/askalf/redstamp)** contains the call · **[truecopy](https://github.com/askalf/truecopy)** vets the tool *(this action puts it in CI)* · **[strongroom](https://github.com/askalf/strongroom)** holds the keys. Run all three together → **[agent-security-stack](https://github.com/askalf/agent-security-stack)**.
+Three composable layers, one defense: **[redstamp](https://github.com/askalf/redstamp)** contains the call · **[truecopy](https://github.com/askalf/truecopy)** vets the tool *(this action puts it in CI)* · **[plumbline](https://github.com/askalf/plumbline)** watches the whole trajectory.
 
 ---
 Part of **[Own Your Stack](https://github.com/askalf)** — own your AI infrastructure instead of renting it. Built by Thomas Sprayberry.
