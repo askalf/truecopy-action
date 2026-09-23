@@ -8,10 +8,17 @@ on:
 permissions:
   contents: read
 
+# Cancel a superseded PR run; let push and schedule runs finish so a
+# default-branch result is never dropped.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
   verify-clean:
     name: verify — clean lock passes
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Pin the fixture
@@ -34,6 +41,7 @@ jobs:
   verify-drift-blocks:
     name: verify — drifted skill fails the build
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Pin a copy, then mutate it
@@ -65,6 +73,7 @@ jobs:
   require-signed-blocks-unsigned:
     name: verify --require-signed — unsigned pin fails the build
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Pin the fixture WITHOUT signing
@@ -94,6 +103,7 @@ jobs:
   require-signed-passes-signed:
     name: verify --require-signed — signed + trusted pin passes
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Sign a pin with a throwaway CI key and trust it
@@ -127,6 +137,7 @@ jobs:
   scan-clean-passes:
     name: scan — clean manifest passes
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: ./
@@ -137,6 +148,7 @@ jobs:
   scan-poisoned-blocks:
     name: scan — poisoned manifest fails the build
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Scan via the action (expected to fail)
