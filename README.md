@@ -1,3 +1,5 @@
+<p align="center"><img src=".github/readme/hero.jpg" alt="One YAML block. A drifted skill cannot merge. The step uses askalf/truecopy-action@v1, and on the pull request the truecopy / verify check fails on a drifted skill, so the merge is blocked." width="100%"></p>
+
 # truecopy-action
 
 [![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/askalf/truecopy-action/badge)](https://scorecard.dev/viewer/?uri=github.com/askalf/truecopy-action)
