@@ -325,6 +325,7 @@ console.log('\n  required CI is the verification where the base branch requires 
   // The reason keeps its first character; only the separator after NOT READY goes.
   const reasonOf = (body) => secondReadAtHead(base({ reviews: [review(SECOND_READ_LOGIN, 'COMMENTED', HEAD, body)] })).reason;
   check('a reason that starts with a code span keeps it', reasonOf('SECOND READ: NOT READY - `x` is null') === '`x` is null');
+  check('the Second Read\'s own dash separator is dropped', reasonOf('SECOND READ: NOT READY \u2014 `x` is null') === '`x` is null');
   check('a hyphen separator is dropped', reasonOf('SECOND READ: NOT READY - stale stack') === 'stale stack');
   check('a colon separator is dropped', reasonOf('SECOND READ: NOT READY: (a) and (b)') === '(a) and (b)');
   check('no separator: the reason is kept whole', reasonOf('SECOND READ: NOT READY [scope] missing') === '[scope] missing');
