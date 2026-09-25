@@ -62,7 +62,7 @@ inputs:
       of v0.9.0 or later installs from the signed release tarball; anything else
       falls back to a git install, which npm v12 blocks by default.
 
-      Default is v0.10.3, not v0.10.0, and the difference is load-bearing:
+      Default is v0.10.4, not v0.10.0, and the difference is load-bearing:
       truecopy 0.10.0 still declares `@askalf/redstamp` as a GIT dependency, so
       installing it from a tarball only moves the git dep one level down and npm
       v12 still refuses. 0.10.1 pins redstamp to its signed release tarball
@@ -72,9 +72,10 @@ inputs:
       array form (`'-ExecutionPolicy','Bypass',...`), which scored green while
       the equivalent space-separated command correctly scored black
       (askalf/redstamp#124). A `verify`/`scan` run through this action on an
-      older ref can miss a skill or MCP server using that evasion shape.
+      older ref can miss a skill or MCP server using that evasion shape. 0.10.4
+      fixes concurrent pins failing with EPERM on Windows (askalf/truecopy#197).
     required: false
-    default: 'v0.10.3'
+    default: 'v0.10.4'
   verify-attestation:
     description: >-
       Verify the release tarball's Sigstore attestation (`gh attestation verify
@@ -208,11 +209,16 @@ runs:
         status=0
         truecopy "${args[@]}" 2>&1 | tee "$report" || status=$?
 
+        # Random delimiter that never occurs in the report text.
+        delim=''
+        while [ -z "$delim" ] || grep -qF "$delim" "$report"; do
+          delim="TRUECOPY_REPORT_$(od -An -tx1 -N16 /dev/urandom | tr -d ' \n')"
+        done
         {
-          echo 'report<<TRUECOPY_REPORT_EOF'
+          echo "report<<${delim}"
           head -c 65536 "$report"
           echo ''
-          echo 'TRUECOPY_REPORT_EOF'
+          echo "${delim}"
         } >> "$GITHUB_OUTPUT"
 
         {

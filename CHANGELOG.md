@@ -6,6 +6,40 @@ an airtight supply chain.
 
 ## [Unreleased]
 
+## [1.1.1] - 2026-09-25
+
+This release also moves the `v1` tag, which had been left on v1.0.3 when
+v1.1.0 shipped. Until now `@v1` did not have the `require-signed` input: a
+workflow setting `require-signed: true` on `@v1` got an "unexpected input"
+warning and unsigned pins still passed.
+
+### Security
+- **A scanned manifest can no longer forge the `report` output.** The report was
+  written to `$GITHUB_OUTPUT` between fixed `TRUECOPY_REPORT_EOF` markers, and
+  truecopy prints manifest names verbatim, newlines included. A manifest whose
+  name contained that marker on its own line closed the block early, and every
+  line after it set a step output of the manifest's choosing (for example a
+  replacement `report`). The delimiter is now random per run and regenerated if
+  the report contains it. A CI job scans such a manifest and asserts the report
+  survives intact.
+
+### Changed
+- **Default `truecopy-ref` moved `v0.10.3` to `v0.10.4`.** 0.10.4 fixes
+  concurrent pins failing with `EPERM` on Windows (askalf/truecopy#197).
+  CI's own pinned installs move with it.
+
+### Fixed
+- ShellCheck SC2155 in CI: the signing key is assigned, then exported, so a
+  failed read is not masked by `export`'s exit status.
+
+## [1.1.0] - 2026-08-17
+
+### Added
+- **`require-signed` input for `verify`.** Fails any pinned entry lacking a
+  valid signature from a trusted key. Off by default: a policy ratchet for
+  repos whose whole pinned set is signed. Self-tested in CI both ways (an
+  unsigned pin fails; a pin signed and trusted in the same run passes).
+
 ## [1.0.3]
 
 ### Changed
