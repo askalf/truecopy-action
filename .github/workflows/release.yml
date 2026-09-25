@@ -1,0 +1,126 @@
+# Releases the newest `## [X.Y.Z] - YYYY-MM-DD` section in CHANGELOG.md: tags
+# vX.Y.Z, publishes its GitHub release with that section as notes, and points
+# the major tag (v1, ...) at the highest release in its series. Runs when
+# CHANGELOG.md changes on master, or by hand with an optional commit to tag.
+# Each step creates only what is missing, so a rerun completes a partial release.
+name: release
+
+on:
+  push:
+    branches: [master]
+    paths: [CHANGELOG.md]
+  workflow_dispatch:
+    inputs:
+      sha:
+        description: 'Commit on master to tag (default: the commit this run is on)'
+        required: false
+        default: ''
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write # push tags, create the release
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Resolve the commit and version
+        id: plan
+        env:
+          INPUT_SHA: ${{ inputs.sha }}
+        run: |
+          set -euo pipefail
+          target="${INPUT_SHA:-$GITHUB_SHA}"
+          target="$(git rev-parse --verify "${target}^{commit}")"
+          if ! git merge-base --is-ancestor "$target" origin/master; then
+            echo "::error::$target is not on master"
+            exit 1
+          fi
+          version="$(git show "$target:CHANGELOG.md" \
+            | sed -nE 's/^## \[([0-9]+\.[0-9]+\.[0-9]+)\] - [0-9]{4}-[0-9]{2}-[0-9]{2}$/\1/p' | head -n1)"
+          if [ -z "$version" ]; then
+            echo "::error::no '## [X.Y.Z] - YYYY-MM-DD' section in CHANGELOG.md at $target"
+            exit 1
+          fi
+          tag="v${version}"
+          if git rev-parse -q --verify "refs/tags/$tag" >/dev/null; then
+            tag_exists=true
+            echo "$tag already exists at $(git rev-parse "$tag^{commit}"); keeping it."
+          else
+            tag_exists=false
+          fi
+          if gh release view "$tag" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            release_exists=true
+            echo "The $tag release already exists."
+          else
+            release_exists=false
+          fi
+          {
+            echo "target=$target"
+            echo "version=$version"
+            echo "tag=$tag"
+            echo "major=v${version%%.*}"
+            echo "tag_exists=$tag_exists"
+            echo "release_exists=$release_exists"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Create the tag
+        if: steps.plan.outputs.tag_exists != 'true'
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          TARGET: ${{ steps.plan.outputs.target }}
+          TAG: ${{ steps.plan.outputs.tag }}
+        run: |
+          set -euo pipefail
+          git tag "$TAG" "$TARGET"
+          git push "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" "refs/tags/$TAG"
+          echo "$TAG -> $TARGET"
+
+      - name: Publish the GitHub release
+        if: steps.plan.outputs.release_exists != 'true'
+        env:
+          TAG: ${{ steps.plan.outputs.tag }}
+          VERSION: ${{ steps.plan.outputs.version }}
+        run: |
+          set -euo pipefail
+          # Notes come from the tagged commit, which may predate the run's commit.
+          git show "$TAG:CHANGELOG.md" | awk -v v="$VERSION" '
+            index($0, "## [" v "]") == 1 { on = 1; next }
+            on && /^## \[/ { exit }
+            on { print }
+          ' > "$RUNNER_TEMP/notes.md"
+          if ! grep -q '[^[:space:]]' "$RUNNER_TEMP/notes.md"; then
+            echo "::error::the [$VERSION] section of CHANGELOG.md at $TAG is empty"
+            exit 1
+          fi
+          gh release create "$TAG" --repo "$GITHUB_REPOSITORY" --verify-tag --title "$TAG" --notes-file "$RUNNER_TEMP/notes.md"
+
+      - name: Point the major tag at the newest release in its series
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          MAJOR: ${{ steps.plan.outputs.major }}
+        run: |
+          set -euo pipefail
+          newest="$(git tag -l "${MAJOR}.*" | grep -E "^${MAJOR}\.[0-9]+\.[0-9]+$" | sort -V | tail -n1)"
+          want="$(git rev-parse "${newest}^{commit}")"
+          have="$(git rev-parse -q --verify "refs/tags/${MAJOR}^{commit}" || true)"
+          if [ "$have" = "$want" ]; then
+            echo "$MAJOR already at $newest ($want)"
+          else
+            git tag -f "$MAJOR" "$want"
+            git push --force "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" "refs/tags/$MAJOR"
+            echo "$MAJOR -> $newest ($want)"
+          fi
