@@ -209,11 +209,7 @@ runs:
         status=0
         truecopy "${args[@]}" 2>&1 | tee "$report" || status=$?
 
-        # The report quotes whatever it scanned, including manifest names, which
-        # may contain newlines. A fixed heredoc delimiter could be closed by a
-        # hostile manifest that prints it on its own line, and every line after
-        # it would then set a step output of the attacker's choosing. So the
-        # delimiter is random per run, and regenerated if the report contains it.
+        # Random delimiter that never occurs in the report text.
         delim=''
         while [ -z "$delim" ] || grep -qF "$delim" "$report"; do
           delim="TRUECOPY_REPORT_$(od -An -tx1 -N16 /dev/urandom | tr -d ' \n')"

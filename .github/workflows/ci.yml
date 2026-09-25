@@ -177,10 +177,7 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      # The fixture's name carries newlines, the delimiter the action used to
-      # hard-code, and a `report=` line. truecopy prints the name verbatim, so
-      # with a fixed delimiter that line closed the block early and replaced
-      # the report output with text chosen by the scanned manifest.
+      # Covers a manifest name containing newlines and output-like text.
       - name: Scan via the action
         id: scan
         uses: ./
