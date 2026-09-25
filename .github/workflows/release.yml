@@ -1,7 +1,8 @@
-# Tags and publishes a release for the newest `## [X.Y.Z] - YYYY-MM-DD` section
-# in CHANGELOG.md, then points the major tag (v1, ...) at it. Runs when
+# Releases the newest `## [X.Y.Z] - YYYY-MM-DD` section in CHANGELOG.md: tags
+# vX.Y.Z, publishes its GitHub release with that section as notes, and points
+# the major tag (v1, ...) at the highest release in its series. Runs when
 # CHANGELOG.md changes on master, or by hand with an optional commit to tag.
-# A version whose tag already exists is left alone.
+# Each step creates only what is missing, so a rerun completes a partial release.
 name: release
 
 on:
@@ -28,6 +29,8 @@ jobs:
     timeout-minutes: 10
     permissions:
       contents: write # push tags, create the release
+    env:
+      GH_TOKEN: ${{ github.token }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -53,63 +56,71 @@ jobs:
             exit 1
           fi
           tag="v${version}"
+          if git rev-parse -q --verify "refs/tags/$tag" >/dev/null; then
+            tag_exists=true
+            echo "$tag already exists at $(git rev-parse "$tag^{commit}"); keeping it."
+          else
+            tag_exists=false
+          fi
+          if gh release view "$tag" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            release_exists=true
+            echo "The $tag release already exists."
+          else
+            release_exists=false
+          fi
           {
             echo "target=$target"
             echo "version=$version"
             echo "tag=$tag"
             echo "major=v${version%%.*}"
+            echo "tag_exists=$tag_exists"
+            echo "release_exists=$release_exists"
           } >> "$GITHUB_OUTPUT"
-          if git rev-parse -q --verify "refs/tags/$tag" >/dev/null; then
-            echo "$tag already exists at $(git rev-parse "$tag^{commit}"); nothing to release."
-            echo "skip=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "Releasing $tag at $target"
-            echo "skip=false" >> "$GITHUB_OUTPUT"
-          fi
 
-      - name: Extract release notes
-        if: steps.plan.outputs.skip != 'true'
+      - name: Create the tag
+        if: steps.plan.outputs.tag_exists != 'true'
         env:
+          GITHUB_TOKEN: ${{ github.token }}
           TARGET: ${{ steps.plan.outputs.target }}
+          TAG: ${{ steps.plan.outputs.tag }}
+        run: |
+          set -euo pipefail
+          git tag "$TAG" "$TARGET"
+          git push "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" "refs/tags/$TAG"
+          echo "$TAG -> $TARGET"
+
+      - name: Publish the GitHub release
+        if: steps.plan.outputs.release_exists != 'true'
+        env:
+          TAG: ${{ steps.plan.outputs.tag }}
           VERSION: ${{ steps.plan.outputs.version }}
         run: |
           set -euo pipefail
-          git show "$TARGET:CHANGELOG.md" | awk -v v="$VERSION" '
+          # Notes come from the tagged commit, which may predate the run's commit.
+          git show "$TAG:CHANGELOG.md" | awk -v v="$VERSION" '
             index($0, "## [" v "]") == 1 { on = 1; next }
             on && /^## \[/ { exit }
             on { print }
           ' > "$RUNNER_TEMP/notes.md"
           if ! grep -q '[^[:space:]]' "$RUNNER_TEMP/notes.md"; then
-            echo "::error::the [$VERSION] section of CHANGELOG.md is empty"
+            echo "::error::the [$VERSION] section of CHANGELOG.md at $TAG is empty"
             exit 1
           fi
+          gh release create "$TAG" --repo "$GITHUB_REPOSITORY" --verify-tag --title "$TAG" --notes-file "$RUNNER_TEMP/notes.md"
 
-      - name: Tag the release and move the major tag
-        if: steps.plan.outputs.skip != 'true'
+      - name: Point the major tag at the newest release in its series
         env:
           GITHUB_TOKEN: ${{ github.token }}
-          TARGET: ${{ steps.plan.outputs.target }}
-          TAG: ${{ steps.plan.outputs.tag }}
           MAJOR: ${{ steps.plan.outputs.major }}
         run: |
           set -euo pipefail
-          remote="https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
-          git tag "$TAG" "$TARGET"
-          git push "$remote" "refs/tags/$TAG"
-          # The major tag follows the highest release in its series, so tagging
-          # an older patch never moves it backwards.
-          newest="$(git tag -l "${MAJOR}.*" | sort -V | tail -n1)"
-          if [ "$newest" = "$TAG" ]; then
-            git tag -f "$MAJOR" "$TARGET"
-            git push --force "$remote" "refs/tags/$MAJOR"
-            echo "$MAJOR -> $TAG ($TARGET)"
+          newest="$(git tag -l "${MAJOR}.*" | grep -E "^${MAJOR}\.[0-9]+\.[0-9]+$" | sort -V | tail -n1)"
+          want="$(git rev-parse "${newest}^{commit}")"
+          have="$(git rev-parse -q --verify "refs/tags/${MAJOR}^{commit}" || true)"
+          if [ "$have" = "$want" ]; then
+            echo "$MAJOR already at $newest ($want)"
           else
-            echo "$MAJOR stays on $newest"
+            git tag -f "$MAJOR" "$want"
+            git push --force "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" "refs/tags/$MAJOR"
+            echo "$MAJOR -> $newest ($want)"
           fi
-
-      - name: Publish the GitHub release
-        if: steps.plan.outputs.skip != 'true'
-        env:
-          GH_TOKEN: ${{ github.token }}
-          TAG: ${{ steps.plan.outputs.tag }}
-        run: gh release create "$TAG" --repo "$GITHUB_REPOSITORY" --verify-tag --title "$TAG" --notes-file "$RUNNER_TEMP/notes.md"
