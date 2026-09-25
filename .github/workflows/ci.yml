@@ -75,7 +75,7 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Pin the fixture WITHOUT signing
-        run: npx -y github:askalf/truecopy#v0.10.3 add fixtures/clean-mcp.json --lock "$RUNNER_TEMP/truecopy.lock"
+        run: npx -y github:askalf/truecopy#v0.10.4 add fixtures/clean-mcp.json --lock "$RUNNER_TEMP/truecopy.lock"
       - name: Verify with require-signed (expected to fail)
         id: verify
         continue-on-error: true
@@ -118,12 +118,13 @@ jobs:
             fs.writeFileSync(process.env.RUNNER_TEMP + '/pub.pem', publicKey);
             fs.writeFileSync(process.env.RUNNER_TEMP + '/key.b64', Buffer.from(privateKey, 'utf8').toString('base64'));
           "
-          export CANON_SIGNING_KEY="$(cat "$RUNNER_TEMP/key.b64")"
-          npx -y github:askalf/truecopy#v0.10.3 add fixtures/clean-mcp.json --sign --lock "$RUNNER_TEMP/truecopy.lock"
+          CANON_SIGNING_KEY="$(cat "$RUNNER_TEMP/key.b64")"
+          export CANON_SIGNING_KEY
+          npx -y github:askalf/truecopy#v0.10.4 add fixtures/clean-mcp.json --sign --lock "$RUNNER_TEMP/truecopy.lock"
           # `trust add` has no --trust flag: --repo writes ./truecopy.trust in
           # the CWD, so run it from RUNNER_TEMP to land the file where the
           # verify step's `trust:` input points.
-          (cd "$RUNNER_TEMP" && npx -y github:askalf/truecopy#v0.10.3 trust add "$RUNNER_TEMP/pub.pem" --name ci-throwaway --repo)
+          (cd "$RUNNER_TEMP" && npx -y github:askalf/truecopy#v0.10.4 trust add "$RUNNER_TEMP/pub.pem" --name ci-throwaway --repo)
       - name: Verify with require-signed
         uses: ./
         with:
@@ -168,4 +169,29 @@ jobs:
           case "$REPORT" in
             *flagged*) echo "poison correctly flagged" ;;
             *) echo "expected 'flagged' in the report" >&2; exit 1 ;;
+          esac
+
+  scan-report-not-hijackable:
+    name: "scan: a hostile manifest cannot forge the report output"
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      # The fixture's name carries newlines, the delimiter the action used to
+      # hard-code, and a `report=` line. truecopy prints the name verbatim, so
+      # with a fixed delimiter that line closed the block early and replaced
+      # the report output with text chosen by the scanned manifest.
+      - name: Scan via the action
+        id: scan
+        uses: ./
+        with:
+          command: scan
+          path: fixtures/delimiter-injection-mcp.json
+      - name: Assert the whole report stayed in the report output
+        env:
+          REPORT: ${{ steps.scan.outputs.report }}
+        run: |
+          case "$REPORT" in
+            *TRUECOPY_REPORT_EOF*report=forged*) echo "report intact: the injected lines stayed inside it" ;;
+            *) echo "report output was cut short or replaced: $REPORT" >&2; exit 1 ;;
           esac
