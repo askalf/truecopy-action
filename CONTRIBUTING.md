@@ -60,3 +60,11 @@ OpenSSF Scorecard also runs on the repo.
 - Consumers pin this action by its major tag, `askalf/truecopy-action@v1`.
 - Commit messages: short imperative subject, with a wrapped body explaining the
   *why* when it isn't obvious.
+
+## Releases
+
+A release is a `## [X.Y.Z] - YYYY-MM-DD` section in `CHANGELOG.md`. When it lands
+on `master`, `.github/workflows/release.yml` tags `vX.Y.Z`, moves the major tag
+(`v1`) to it when it is the newest in that series, and publishes the GitHub
+release with that section as its notes. To tag a specific earlier commit, run
+the workflow by hand with its `sha` input.
