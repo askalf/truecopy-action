@@ -6,6 +6,8 @@ an airtight supply chain.
 
 ## [Unreleased]
 
+## [1.1.2] - 2026-09-27
+
 ### Fixed
 - **The action now installs on non-root self-hosted runners.** It ran
   `npm install -g`, which writes npm's global prefix. On a runner whose user
