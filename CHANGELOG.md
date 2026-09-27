@@ -14,9 +14,7 @@ an airtight supply chain.
   '/usr/lib/node_modules/@askalf/truecopy'`. truecopy now installs into
   `$RUNNER_TEMP/truecopy-action` on every runner, and the action runs that
   binary by absolute path. The download and attestation checks are unchanged.
-  The bin directory is still added to `PATH` for later steps. A CI job makes
-  the global prefix unwritable, confirms `npm install -g` fails, and runs the
-  action.
+  The bin directory is still added to `PATH` for later steps.
 
 ## [1.1.1] - 2026-09-25
 

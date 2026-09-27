@@ -232,7 +232,7 @@ jobs:
             echo "expected a non-empty report output" >&2
             exit 1
           fi
-          # Later steps still get a bare `truecopy` on PATH.
+          # Later steps get a bare `truecopy` on PATH.
           where="$(command -v truecopy)"
           case "$where" in
             "$RUNNER_TEMP"/truecopy-action/*) echo "truecopy on PATH at $where" ;;

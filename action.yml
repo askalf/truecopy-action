@@ -184,9 +184,8 @@ runs:
           echo "::error::truecopy installed but ${bin}/truecopy is missing"
           exit 1
         fi
-        # The run step calls this exact binary. The PATH entry keeps a bare
-        # `truecopy` working in the caller's later steps, as the global
-        # install did.
+        # The run step calls this exact binary. The PATH entry lets the
+        # caller's later steps run a bare `truecopy`.
         echo "bin=${bin}" >> "$GITHUB_OUTPUT"
         echo "${bin}" >> "$GITHUB_PATH"
 
