@@ -86,6 +86,8 @@ This is a supply-chain gate, so it practices what it gates:
 
 Requires node ≥ 20 on the runner (every current GitHub-hosted image qualifies; on self-hosted, add `actions/setup-node` first).
 
+truecopy is installed into `$RUNNER_TEMP/truecopy-action`, not npm's global prefix, so the action works on non-root self-hosted runners whose global prefix is root-owned. That directory's `node_modules/.bin` is added to `PATH`, so later steps in the job can still call `truecopy` directly.
+
 > **npm v12 note.** npm v12 [blocks git dependencies by default](https://github.blog/changelog/2026-06-09-upcoming-breaking-changes-for-npm-v12/). The tarball path above avoids that for release refs. Two caveats: a branch/SHA ref still needs the git route (the action passes `--allow-git` on npm ≥ 12), and truecopy itself currently declares a git dependency on redstamp, so a fully git-free install also depends on that being resolved upstream — [truecopy-action#14](https://github.com/askalf/truecopy-action/issues/14).
 
 ## The agent-security stack

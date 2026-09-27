@@ -93,6 +93,7 @@ runs:
   using: 'composite'
   steps:
     - name: Install truecopy
+      id: install
       shell: bash
       env:
         TRUECOPY_REF: ${{ inputs.truecopy-ref }}
@@ -112,6 +113,17 @@ runs:
         fi
 
         npm_major="$(npm -v | cut -d. -f1)"
+
+        # Install into a prefix under RUNNER_TEMP, never the global one. The
+        # global prefix (/usr/lib/node_modules on a distro node) is root-owned
+        # on a non-root self-hosted runner, so `npm install -g` cannot write it.
+        # RUNNER_TEMP is writable by the runner user on every runner and is
+        # emptied between jobs. The explicit --prefix also overrides any
+        # npm_config_prefix in the environment.
+        prefix="${RUNNER_TEMP}/truecopy-action"
+        rm -rf "$prefix"
+        mkdir -p "$prefix"
+        bin="${prefix}/node_modules/.bin"
 
         # Prefer the signed release tarball. npm v12 blocks git dependencies by
         # default, and a supply-chain gate should not install itself over the
@@ -141,7 +153,7 @@ runs:
                 exit 1
               fi
             fi
-            if npm install -g --no-fund --no-audit "${tmp}/${tgz}"; then
+            if npm install --prefix "$prefix" --no-fund --no-audit "${tmp}/${tgz}"; then
               installed=1
               echo "truecopy ${ver} installed from the signed release tarball"
             else
@@ -156,17 +168,27 @@ runs:
         if [ "$installed" -eq 0 ]; then
           if [ "$npm_major" -ge 12 ]; then
             echo "::warning::npm ${npm_major} blocks git dependencies by default; retrying with --allow-git. Pin truecopy-ref to a release tag >= v0.9.0 to install from the signed tarball instead."
-            if ! npm install -g --allow-git --no-fund --no-audit "github:askalf/truecopy#${TRUECOPY_REF}"; then
+            if ! npm install --prefix "$prefix" --allow-git --no-fund --no-audit "github:askalf/truecopy#${TRUECOPY_REF}"; then
               echo "::error::git install of '${TRUECOPY_REF}' failed under npm ${npm_major}, which blocks git dependencies. Set truecopy-ref to a release tag >= v0.9.0 (e.g. v0.10.0) so the action installs from the signed release tarball."
               exit 1
             fi
           else
-            if ! npm install -g --no-fund --no-audit "github:askalf/truecopy#${TRUECOPY_REF}"; then
+            if ! npm install --prefix "$prefix" --no-fund --no-audit "github:askalf/truecopy#${TRUECOPY_REF}"; then
               echo "::error::git install of '${TRUECOPY_REF}' failed"
               exit 1
             fi
           fi
         fi
+
+        if [ ! -f "${bin}/truecopy" ]; then
+          echo "::error::truecopy installed but ${bin}/truecopy is missing"
+          exit 1
+        fi
+        # The run step calls this exact binary. The PATH entry keeps a bare
+        # `truecopy` working in the caller's later steps, as the global
+        # install did.
+        echo "bin=${bin}" >> "$GITHUB_OUTPUT"
+        echo "${bin}" >> "$GITHUB_PATH"
 
     - name: Run truecopy
       id: run
@@ -179,6 +201,7 @@ runs:
         TRUECOPY_LOCK: ${{ inputs.lock }}
         TRUECOPY_TRUST: ${{ inputs.trust }}
         TRUECOPY_REQUIRE_SIGNED: ${{ inputs.require-signed }}
+        TRUECOPY_BIN: ${{ steps.install.outputs.bin }}
       run: |
         args=()
         case "$TRUECOPY_CMD" in
@@ -207,7 +230,7 @@ runs:
 
         report="$RUNNER_TEMP/truecopy-report.txt"
         status=0
-        truecopy "${args[@]}" 2>&1 | tee "$report" || status=$?
+        "${TRUECOPY_BIN}/truecopy" "${args[@]}" 2>&1 | tee "$report" || status=$?
 
         # Random delimiter that never occurs in the report text.
         delim=''
