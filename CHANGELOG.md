@@ -6,6 +6,16 @@ an airtight supply chain.
 
 ## [Unreleased]
 
+### Fixed
+- **The action now installs on non-root self-hosted runners.** It ran
+  `npm install -g`, which writes npm's global prefix. On a runner whose user
+  cannot write that prefix (a distro node under `/usr/lib`), the install failed
+  with `ENOENT: no such file or directory, mkdir
+  '/usr/lib/node_modules/@askalf/truecopy'`. truecopy now installs into
+  `$RUNNER_TEMP/truecopy-action` on every runner, and the action runs that
+  binary by absolute path. The download and attestation checks are unchanged.
+  The bin directory is still added to `PATH` for later steps.
+
 ## [1.1.1] - 2026-09-25
 
 This release also moves the `v1` tag, which had been left on v1.0.3 when

@@ -192,3 +192,50 @@ jobs:
             *TRUECOPY_REPORT_EOF*report=forged*) echo "report intact: the injected lines stayed inside it" ;;
             *) echo "report output was cut short or replaced: $REPORT" >&2; exit 1 ;;
           esac
+
+  install-read-only-global-prefix:
+    name: "install: works when the global npm prefix is not writable"
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      # A non-root self-hosted runner cannot write its root-owned global
+      # prefix. The hosted runner user is non-root too, so a prefix under a
+      # mode 555 directory reproduces that for every later step in this job.
+      - name: Point the global npm prefix at an unwritable path
+        run: |
+          ro="$RUNNER_TEMP/ro-global"
+          mkdir -p "$ro"
+          chmod 555 "$ro"
+          echo "npm_config_prefix=$ro/prefix" >> "$GITHUB_ENV"
+      - name: Confirm a global install is refused
+        run: |
+          pkg="$RUNNER_TEMP/probe-pkg"
+          mkdir -p "$pkg"
+          printf '{"name":"probe-pkg","version":"1.0.0"}\n' > "$pkg/package.json"
+          if npm install -g --no-fund --no-audit "$pkg"; then
+            echo "expected npm install -g to fail under $npm_config_prefix" >&2
+            exit 1
+          fi
+          echo "global install refused, as on a non-root runner"
+      - name: Scan via the action
+        id: scan
+        uses: ./
+        with:
+          command: scan
+          path: fixtures/clean-mcp.json
+      - name: Assert truecopy ran from the job-local prefix
+        env:
+          REPORT: ${{ steps.scan.outputs.report }}
+        run: |
+          if [ -z "$REPORT" ]; then
+            echo "expected a non-empty report output" >&2
+            exit 1
+          fi
+          # Later steps get a bare `truecopy` on PATH.
+          where="$(command -v truecopy)"
+          case "$where" in
+            "$RUNNER_TEMP"/truecopy-action/*) echo "truecopy on PATH at $where" ;;
+            *) echo "expected truecopy under $RUNNER_TEMP/truecopy-action, got: '$where'" >&2; exit 1 ;;
+          esac
+          truecopy scan fixtures/clean-mcp.json
