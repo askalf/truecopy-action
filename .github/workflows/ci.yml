@@ -16,7 +16,7 @@ jobs:
   verify-clean:
     name: verify — clean lock passes
     # Our own code (pushes, same-repo PRs, schedules, dispatches) runs on truecopy-action-exec, the
-    # non-root one-job runners on our host (platform deploy/gha-runners), so GitHub's hosted
+    # non-root one-job runners on our host, so GitHub's hosted
     # queue going down does not hold our PRs. A fork's PR and a Dependabot PR run code nobody
     # here wrote, so they stay on GitHub's runners.
     runs-on: ${{ github.event.pull_request && (github.event.pull_request.head.repo.full_name != github.repository || github.event.pull_request.user.login == 'dependabot[bot]') && 'ubuntu-latest' || fromJSON('["self-hosted","truecopy-action-exec"]') }}
@@ -43,7 +43,7 @@ jobs:
   verify-drift-blocks:
     name: verify — drifted skill fails the build
     # Our own code (pushes, same-repo PRs, schedules, dispatches) runs on truecopy-action-exec, the
-    # non-root one-job runners on our host (platform deploy/gha-runners), so GitHub's hosted
+    # non-root one-job runners on our host, so GitHub's hosted
     # queue going down does not hold our PRs. A fork's PR and a Dependabot PR run code nobody
     # here wrote, so they stay on GitHub's runners.
     runs-on: ${{ github.event.pull_request && (github.event.pull_request.head.repo.full_name != github.repository || github.event.pull_request.user.login == 'dependabot[bot]') && 'ubuntu-latest' || fromJSON('["self-hosted","truecopy-action-exec"]') }}
@@ -79,7 +79,7 @@ jobs:
   require-signed-blocks-unsigned:
     name: verify --require-signed — unsigned pin fails the build
     # Our own code (pushes, same-repo PRs, schedules, dispatches) runs on truecopy-action-exec, the
-    # non-root one-job runners on our host (platform deploy/gha-runners), so GitHub's hosted
+    # non-root one-job runners on our host, so GitHub's hosted
     # queue going down does not hold our PRs. A fork's PR and a Dependabot PR run code nobody
     # here wrote, so they stay on GitHub's runners.
     runs-on: ${{ github.event.pull_request && (github.event.pull_request.head.repo.full_name != github.repository || github.event.pull_request.user.login == 'dependabot[bot]') && 'ubuntu-latest' || fromJSON('["self-hosted","truecopy-action-exec"]') }}
@@ -113,7 +113,7 @@ jobs:
   require-signed-passes-signed:
     name: verify --require-signed — signed + trusted pin passes
     # Our own code (pushes, same-repo PRs, schedules, dispatches) runs on truecopy-action-exec, the
-    # non-root one-job runners on our host (platform deploy/gha-runners), so GitHub's hosted
+    # non-root one-job runners on our host, so GitHub's hosted
     # queue going down does not hold our PRs. A fork's PR and a Dependabot PR run code nobody
     # here wrote, so they stay on GitHub's runners.
     runs-on: ${{ github.event.pull_request && (github.event.pull_request.head.repo.full_name != github.repository || github.event.pull_request.user.login == 'dependabot[bot]') && 'ubuntu-latest' || fromJSON('["self-hosted","truecopy-action-exec"]') }}
@@ -152,7 +152,7 @@ jobs:
   scan-clean-passes:
     name: scan — clean manifest passes
     # Our own code (pushes, same-repo PRs, schedules, dispatches) runs on truecopy-action-exec, the
-    # non-root one-job runners on our host (platform deploy/gha-runners), so GitHub's hosted
+    # non-root one-job runners on our host, so GitHub's hosted
     # queue going down does not hold our PRs. A fork's PR and a Dependabot PR run code nobody
     # here wrote, so they stay on GitHub's runners.
     runs-on: ${{ github.event.pull_request && (github.event.pull_request.head.repo.full_name != github.repository || github.event.pull_request.user.login == 'dependabot[bot]') && 'ubuntu-latest' || fromJSON('["self-hosted","truecopy-action-exec"]') }}
@@ -167,7 +167,7 @@ jobs:
   scan-poisoned-blocks:
     name: scan — poisoned manifest fails the build
     # Our own code (pushes, same-repo PRs, schedules, dispatches) runs on truecopy-action-exec, the
-    # non-root one-job runners on our host (platform deploy/gha-runners), so GitHub's hosted
+    # non-root one-job runners on our host, so GitHub's hosted
     # queue going down does not hold our PRs. A fork's PR and a Dependabot PR run code nobody
     # here wrote, so they stay on GitHub's runners.
     runs-on: ${{ github.event.pull_request && (github.event.pull_request.head.repo.full_name != github.repository || github.event.pull_request.user.login == 'dependabot[bot]') && 'ubuntu-latest' || fromJSON('["self-hosted","truecopy-action-exec"]') }}
@@ -198,7 +198,7 @@ jobs:
   scan-report-not-hijackable:
     name: "scan: a hostile manifest cannot forge the report output"
     # Our own code (pushes, same-repo PRs, schedules, dispatches) runs on truecopy-action-exec, the
-    # non-root one-job runners on our host (platform deploy/gha-runners), so GitHub's hosted
+    # non-root one-job runners on our host, so GitHub's hosted
     # queue going down does not hold our PRs. A fork's PR and a Dependabot PR run code nobody
     # here wrote, so they stay on GitHub's runners.
     runs-on: ${{ github.event.pull_request && (github.event.pull_request.head.repo.full_name != github.repository || github.event.pull_request.user.login == 'dependabot[bot]') && 'ubuntu-latest' || fromJSON('["self-hosted","truecopy-action-exec"]') }}
@@ -224,7 +224,7 @@ jobs:
   install-read-only-global-prefix:
     name: "install: works when the global npm prefix is not writable"
     # Our own code (pushes, same-repo PRs, schedules, dispatches) runs on truecopy-action-exec, the
-    # non-root one-job runners on our host (platform deploy/gha-runners), so GitHub's hosted
+    # non-root one-job runners on our host, so GitHub's hosted
     # queue going down does not hold our PRs. A fork's PR and a Dependabot PR run code nobody
     # here wrote, so they stay on GitHub's runners.
     runs-on: ${{ github.event.pull_request && (github.event.pull_request.head.repo.full_name != github.repository || github.event.pull_request.user.login == 'dependabot[bot]') && 'ubuntu-latest' || fromJSON('["self-hosted","truecopy-action-exec"]') }}
