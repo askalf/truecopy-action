@@ -31,10 +31,13 @@ permissions:
   contents: read
   pull-requests: read
 
-# Queued, not cancelled: forge dispatches one run per review, and a cancelled run leaves no
-# artifact for it to read.
+# One group per review. GitHub keeps one running and one pending run per group and cancels the
+# pending one when another queues, whatever cancel-in-progress says, so reviews sharing a group
+# could lose a run and the artifact forge reads for it. Runs for different reviews never touch
+# each other; a repeat dispatch of the same review waits for the running one instead of
+# cancelling it, and whichever of its runs survives produces that review's artifact.
 concurrency:
-  group: fix-${{ github.repository }}-${{ inputs.pr }}
+  group: fix-${{ github.repository }}-${{ inputs.pr }}-${{ inputs.review }}
   cancel-in-progress: false
 
 jobs:
