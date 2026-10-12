@@ -40,7 +40,7 @@ Exit 1 — a failed check on the PR — if any pinned skill **drifted** (bytes c
 
 ## Audit a marketplace before you install from it
 
-truecopy audited the full official Claude Code plugin marketplace plus nine community ones — **2,019 skills** — with this exact primitive ([methodology & findings](https://sprayberrylabs.com/blog/auditing-the-skills-supply-chain)). To audit any marketplace or plugin repo at the ref you're about to trust:
+truecopy audited the full official Claude Code plugin marketplace plus nine community ones — **2,019 skills** — with this exact primitive. To audit any marketplace or plugin repo at the ref you're about to trust:
 
 ```yaml
 - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
