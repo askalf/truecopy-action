@@ -24,6 +24,8 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
       - name: Pin the fixture
         run: npx -y github:askalf/truecopy#v0.8.0 add fixtures/clean-mcp.json --lock "$RUNNER_TEMP/truecopy.lock"
       - name: Verify via the action
@@ -52,6 +54,8 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
       - name: Pin a copy, then mutate it
         run: |
           cp fixtures/clean-mcp.json "$RUNNER_TEMP/skill.json"
@@ -89,6 +93,8 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
       - name: Pin the fixture WITHOUT signing
         run: npx -y github:askalf/truecopy#v0.10.4 add fixtures/clean-mcp.json --lock "$RUNNER_TEMP/truecopy.lock"
       - name: Verify with require-signed (expected to fail)
@@ -124,6 +130,8 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
       - name: Sign a pin with a throwaway CI key and trust it
         run: |
           # CANON_SIGNING_KEY (private, generated for THIS run only) signs the
@@ -164,6 +172,8 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
       - uses: ./
         with:
           command: scan
@@ -180,6 +190,8 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
       - name: Scan via the action (expected to fail)
         id: scan
         continue-on-error: true
@@ -212,6 +224,8 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
       # Covers a manifest name containing newlines and output-like text.
       - name: Scan via the action
         id: scan
@@ -239,6 +253,8 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
       # A non-root self-hosted runner cannot write its root-owned global
       # prefix. The hosted runner user is non-root too, so a prefix under a
       # mode 555 directory reproduces that for every later step in this job.
