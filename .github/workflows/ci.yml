@@ -23,7 +23,7 @@ jobs:
     runs-on: ${{ (github.repository != 'askalf/truecopy-action' || github.event.pull_request && (github.event.pull_request.head.repo.full_name != github.repository || github.event.pull_request.user.login == 'dependabot[bot]')) && 'ubuntu-latest' || fromJSON('["self-hosted","truecopy-action-exec"]') }}
     timeout-minutes: 10
     steps:
-      - uses: askalf/ci/actions/checkout-with-retry@aae8ab88a0fd614bc1a1c738cd12775cabc44904 # main 2026-10-22, askalf/ci#108
+      - uses: askalf/ci/actions/checkout-with-retry@54fb45385aac67e96a83ea83a3cb5420120aabee # main 2026-10-23, askalf/ci#113
         with:
           persist-credentials: false
       - name: Pin the fixture
@@ -53,7 +53,7 @@ jobs:
     runs-on: ${{ (github.repository != 'askalf/truecopy-action' || github.event.pull_request && (github.event.pull_request.head.repo.full_name != github.repository || github.event.pull_request.user.login == 'dependabot[bot]')) && 'ubuntu-latest' || fromJSON('["self-hosted","truecopy-action-exec"]') }}
     timeout-minutes: 10
     steps:
-      - uses: askalf/ci/actions/checkout-with-retry@aae8ab88a0fd614bc1a1c738cd12775cabc44904 # main 2026-10-22, askalf/ci#108
+      - uses: askalf/ci/actions/checkout-with-retry@54fb45385aac67e96a83ea83a3cb5420120aabee # main 2026-10-23, askalf/ci#113
         with:
           persist-credentials: false
       - name: Pin a copy, then mutate it
@@ -92,7 +92,7 @@ jobs:
     runs-on: ${{ (github.repository != 'askalf/truecopy-action' || github.event.pull_request && (github.event.pull_request.head.repo.full_name != github.repository || github.event.pull_request.user.login == 'dependabot[bot]')) && 'ubuntu-latest' || fromJSON('["self-hosted","truecopy-action-exec"]') }}
     timeout-minutes: 10
     steps:
-      - uses: askalf/ci/actions/checkout-with-retry@aae8ab88a0fd614bc1a1c738cd12775cabc44904 # main 2026-10-22, askalf/ci#108
+      - uses: askalf/ci/actions/checkout-with-retry@54fb45385aac67e96a83ea83a3cb5420120aabee # main 2026-10-23, askalf/ci#113
         with:
           persist-credentials: false
       - name: Pin the fixture WITHOUT signing
@@ -129,7 +129,7 @@ jobs:
     runs-on: ${{ (github.repository != 'askalf/truecopy-action' || github.event.pull_request && (github.event.pull_request.head.repo.full_name != github.repository || github.event.pull_request.user.login == 'dependabot[bot]')) && 'ubuntu-latest' || fromJSON('["self-hosted","truecopy-action-exec"]') }}
     timeout-minutes: 10
     steps:
-      - uses: askalf/ci/actions/checkout-with-retry@aae8ab88a0fd614bc1a1c738cd12775cabc44904 # main 2026-10-22, askalf/ci#108
+      - uses: askalf/ci/actions/checkout-with-retry@54fb45385aac67e96a83ea83a3cb5420120aabee # main 2026-10-23, askalf/ci#113
         with:
           persist-credentials: false
       - name: Sign a pin with a throwaway CI key and trust it
@@ -171,7 +171,7 @@ jobs:
     runs-on: ${{ (github.repository != 'askalf/truecopy-action' || github.event.pull_request && (github.event.pull_request.head.repo.full_name != github.repository || github.event.pull_request.user.login == 'dependabot[bot]')) && 'ubuntu-latest' || fromJSON('["self-hosted","truecopy-action-exec"]') }}
     timeout-minutes: 10
     steps:
-      - uses: askalf/ci/actions/checkout-with-retry@aae8ab88a0fd614bc1a1c738cd12775cabc44904 # main 2026-10-22, askalf/ci#108
+      - uses: askalf/ci/actions/checkout-with-retry@54fb45385aac67e96a83ea83a3cb5420120aabee # main 2026-10-23, askalf/ci#113
         with:
           persist-credentials: false
       - uses: ./
@@ -189,7 +189,7 @@ jobs:
     runs-on: ${{ (github.repository != 'askalf/truecopy-action' || github.event.pull_request && (github.event.pull_request.head.repo.full_name != github.repository || github.event.pull_request.user.login == 'dependabot[bot]')) && 'ubuntu-latest' || fromJSON('["self-hosted","truecopy-action-exec"]') }}
     timeout-minutes: 10
     steps:
-      - uses: askalf/ci/actions/checkout-with-retry@aae8ab88a0fd614bc1a1c738cd12775cabc44904 # main 2026-10-22, askalf/ci#108
+      - uses: askalf/ci/actions/checkout-with-retry@54fb45385aac67e96a83ea83a3cb5420120aabee # main 2026-10-23, askalf/ci#113
         with:
           persist-credentials: false
       - name: Scan via the action (expected to fail)
@@ -223,7 +223,7 @@ jobs:
     runs-on: ${{ (github.repository != 'askalf/truecopy-action' || github.event.pull_request && (github.event.pull_request.head.repo.full_name != github.repository || github.event.pull_request.user.login == 'dependabot[bot]')) && 'ubuntu-latest' || fromJSON('["self-hosted","truecopy-action-exec"]') }}
     timeout-minutes: 10
     steps:
-      - uses: askalf/ci/actions/checkout-with-retry@aae8ab88a0fd614bc1a1c738cd12775cabc44904 # main 2026-10-22, askalf/ci#108
+      - uses: askalf/ci/actions/checkout-with-retry@54fb45385aac67e96a83ea83a3cb5420120aabee # main 2026-10-23, askalf/ci#113
         with:
           persist-credentials: false
       # Covers a manifest name containing newlines and output-like text.
@@ -252,7 +252,7 @@ jobs:
     runs-on: ${{ (github.repository != 'askalf/truecopy-action' || github.event.pull_request && (github.event.pull_request.head.repo.full_name != github.repository || github.event.pull_request.user.login == 'dependabot[bot]')) && 'ubuntu-latest' || fromJSON('["self-hosted","truecopy-action-exec"]') }}
     timeout-minutes: 10
     steps:
-      - uses: askalf/ci/actions/checkout-with-retry@aae8ab88a0fd614bc1a1c738cd12775cabc44904 # main 2026-10-22, askalf/ci#108
+      - uses: askalf/ci/actions/checkout-with-retry@54fb45385aac67e96a83ea83a3cb5420120aabee # main 2026-10-23, askalf/ci#113
         with:
           persist-credentials: false
       # A non-root self-hosted runner cannot write its root-owned global
