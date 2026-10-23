@@ -20,7 +20,7 @@ on:
   issue_comment:
     types: [created, edited, deleted]
   workflow_run:
-    workflows: ['Fleet status self-test', 'Fleet review relay', ci, CodeQL, labels, 'PR triage', Redline]
+    workflows: ['Fleet status self-test', 'Fleet review relay', ci, CodeQL, labels, 'PR triage', Redline, 'Public text']
     types: [completed]
 
 permissions: {}
