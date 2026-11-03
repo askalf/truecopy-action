@@ -4,7 +4,7 @@
 
 [![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/askalf/truecopy-action/badge)](https://scorecard.dev/viewer/?uri=github.com/askalf/truecopy-action)
 [![OpenSSF Best Practices](https://www.bestpractices.dev/projects/16168/badge)](https://www.bestpractices.dev/projects/16168)
-[![CI on pitlane](https://img.shields.io/endpoint?url=https%3A%2F%2Fpitlane.askalf.org%2Fbadge.json)](https://pitlane.askalf.org/)
+[![CI measured](https://img.shields.io/endpoint?url=https%3A%2F%2Fpitlane.askalf.org%2Fbadge.json)](https://pitlane.askalf.org/)
 
 > The GitHub Action for **[truecopy](https://github.com/askalf/truecopy)**, the supply-chain gate for AI agents: one YAML block gates every agent skill & MCP server change in CI. Part of **[Own Your Stack](https://github.com/askalf)**.
 
